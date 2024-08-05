@@ -1,0 +1,56 @@
+security:
+    #enable_authenticator_manager: true
+
+    # Password hashing configuration
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # User providers configuration
+    providers:
+        # The entity provider to load users from the User entity
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    # Firewalls configuration
+    firewalls:
+        # Firewall for the login path, using JSON login
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login_check
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # Main API firewall that uses JWT
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
+            provider: app_user_provider
+
+    # Access control rules
+    access_control:
+        # Allow public access to the login path
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        # Allow anonymous access to all API endpoints for GET requests
+        - { path: ^/api/aviss, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/categories, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/habitats, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/statuses, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/messages, roles: PUBLIC_ACCESS, methods: [GET] }
+        # Require authentication for all other API requests
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Lowest possible value for bcrypt
+                time_cost: 3 # Lowest possible value for argon
+                memory_cost: 10 # Lowest possible value for argon
