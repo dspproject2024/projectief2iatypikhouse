@@ -1,10 +1,17 @@
+# config/packages/nelmio_cors.yaml
 nelmio_cors:
-    defaults:
-        origin_regex: true
-        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
-        allow_methods: ['GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE']
-        allow_headers: ['Content-Type', 'Authorization']
-        expose_headers: ['Link']
-        max_age: 3600
-    paths:
-        '^/': null
+  defaults:
+    origin_regex: true
+    allow_origin: ["%env(CORS_ALLOW_ORIGIN)%"] # Dynamically set in .env
+    allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers: ["Content-Type", "Authorization"]
+    expose_headers: ["Authorization"]
+    max_age: 3600
+    allow_credentials: true # If you are using cookies or JWT tokens
+  paths:
+    "^/api/":
+      allow_origin: ["%env(CORS_ALLOW_ORIGIN)%"]
+      allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      allow_headers: ["Content-Type", "Authorization"]
+      max_age: 3600
+      allow_credentials: true

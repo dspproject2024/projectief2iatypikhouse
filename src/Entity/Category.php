@@ -21,16 +21,25 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['category:read']],
     denormalizationContext: ['groups' => ['category:write']],
     operations: [
-        new Get(),
-        new GetCollection(),
+        // Public access to Get a single category
+        new Get(
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
+        // Public access to Get a collection of categories
+        new GetCollection(
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
+        // Only admin can create a category
         new Post(
             security: "is_granted('ROLE_ADMIN')",
             securityMessage: 'Seuls les administrateurs peuvent créer de nouvelles catégories.'
         ),
+        // Only admin can update a category
         new Put(
             security: "is_granted('ROLE_ADMIN')",
             securityMessage: 'Seuls les administrateurs peuvent modifier les catégories.'
         ),
+        // Only admin can delete a category
         new Delete(
             security: "is_granted('ROLE_ADMIN')",
             securityMessage: 'Seuls les administrateurs peuvent supprimer des catégories.'
@@ -64,7 +73,7 @@ class Category
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
-   ##[Assert\NotBlank(message: "Le slug ne peut pas être vide.")]
+    #[Assert\NotBlank(message: "Le slug ne peut pas être vide.")]
     #[Assert\Length(
         max: 255,
         maxMessage: "Le slug ne peut pas dépasser {{ limit }} caractères."
@@ -92,6 +101,12 @@ class Category
     #[ORM\OneToMany(targetEntity: Habitat::class, mappedBy: 'category')]
     #[Groups(['category:read'])]
     private Collection $habitats;
+
+    // This field is for storing the image URL for the category
+    #[ORM\Column(length: 255)]
+    #[Assert\Url(message: "L'URL de l'image doit être valide.")]
+    #[Groups(['category:read', 'category:write'])]
+    private ?string $url = null;
 
     public function __construct()
     {
@@ -206,5 +221,17 @@ class Category
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getUrl(): ?string
+    {
+        return $this->url;
+    }
+
+    public function setUrl(string $url): static
+    {
+        $this->url = $url;
+
+        return $this;
     }
 }

@@ -83,6 +83,24 @@ class Habitat
     #[Groups(['habitat:read', 'habitat:write'])]
     private ?string $location = null;
 
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La ville ne peut pas être vide.")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "La ville ne peut pas dépasser {{ limit }} caractères."
+    )]
+    #[Groups(['habitat:read', 'habitat:write'])]
+    private ?string $city = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le pays ne peut pas être vide.")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Le pays ne peut pas dépasser {{ limit }} caractères."
+    )]
+    #[Groups(['habitat:read', 'habitat:write'])]
+    private ?string $country = null;
+
     #[ORM\Column]
     #[Assert\NotNull(message: "Le prix par nuit ne peut pas être nul.")]
     #[Assert\Positive(message: "Le prix par nuit doit être un nombre positif.")]
@@ -105,6 +123,11 @@ class Habitat
     #[Groups(['habitat:read', 'habitat:write'])]
     private array $availability = [];
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Url(message: "L'URL de l'image doit être valide.")]
+    #[Groups(['habitat:read', 'habitat:write'])]
+    private ?string $url = null;
+
     #[ORM\Column]
     #[Assert\Type("\DateTimeImmutable")]
     #[Groups(['habitat:read'])]
@@ -124,30 +147,18 @@ class Habitat
     #[Groups(['habitat:read', 'habitat:write'])]
     private ?Category $category = null;
 
-    /**
-     * @var Collection<int, Reservation>
-     */
     #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'habitat')]
     #[Groups(['habitat:read'])]
     private Collection $reservations;
 
-    /**
-     * @var Collection<int, Avis>
-     */
     #[ORM\OneToMany(targetEntity: Avis::class, mappedBy: 'habitat')]
     #[Groups(['habitat:read'])]
     private Collection $avis;
 
-    /**
-     * @var Collection<int, Promotion>
-     */
     #[ORM\OneToMany(targetEntity: Promotion::class, mappedBy: 'habitat')]
     #[Groups(['habitat:read'])]
     private Collection $promotions;
 
-    /**
-     * @var Collection<int, Image>
-     */
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'habitat')]
     #[Groups(['habitat:read'])]
     private Collection $images;
@@ -160,6 +171,8 @@ class Habitat
         $this->images = new ArrayCollection();
     }
 
+    // Getters and Setters for all fields
+
     public function getId(): ?int
     {
         return $this->id;
@@ -170,10 +183,9 @@ class Habitat
         return $this->title;
     }
 
-    public function setTitle(string $title): static
+    public function setTitle(string $title): self
     {
         $this->title = $title;
-
         return $this;
     }
 
@@ -182,10 +194,9 @@ class Habitat
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(string $description): self
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -194,10 +205,9 @@ class Habitat
         return $this->slug;
     }
 
-    public function setSlug(string $slug): static
+    public function setSlug(string $slug): self
     {
         $this->slug = $slug;
-
         return $this;
     }
 
@@ -206,10 +216,31 @@ class Habitat
         return $this->location;
     }
 
-    public function setLocation(string $location): static
+    public function setLocation(string $location): self
     {
         $this->location = $location;
+        return $this;
+    }
 
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(string $city): self
+    {
+        $this->city = $city;
+        return $this;
+    }
+
+    public function getCountry(): ?string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(string $country): self
+    {
+        $this->country = $country;
         return $this;
     }
 
@@ -218,10 +249,9 @@ class Habitat
         return $this->pricePerNight;
     }
 
-    public function setPricePerNight(float $pricePerNight): static
+    public function setPricePerNight(float $pricePerNight): self
     {
         $this->pricePerNight = $pricePerNight;
-
         return $this;
     }
 
@@ -230,10 +260,9 @@ class Habitat
         return $this->maxGuests;
     }
 
-    public function setMaxGuests(int $maxGuests): static
+    public function setMaxGuests(int $maxGuests): self
     {
         $this->maxGuests = $maxGuests;
-
         return $this;
     }
 
@@ -242,10 +271,9 @@ class Habitat
         return $this->amenities;
     }
 
-    public function setAmenities(array $amenities): static
+    public function setAmenities(array $amenities): self
     {
         $this->amenities = $amenities;
-
         return $this;
     }
 
@@ -254,10 +282,20 @@ class Habitat
         return $this->availability;
     }
 
-    public function setAvailability(array $availability): static
+    public function setAvailability(array $availability): self
     {
         $this->availability = $availability;
+        return $this;
+    }
 
+    public function getUrl(): ?string
+    {
+        return $this->url;
+    }
+
+    public function setUrl(?string $url): self
+    {
+        $this->url = $url;
         return $this;
     }
 
@@ -266,10 +304,9 @@ class Habitat
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -278,10 +315,9 @@ class Habitat
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
@@ -290,10 +326,9 @@ class Habitat
         return $this->owner;
     }
 
-    public function setOwner(?User $owner): static
+    public function setOwner(?User $owner): self
     {
         $this->owner = $owner;
-
         return $this;
     }
 
@@ -302,22 +337,18 @@ class Habitat
         return $this->category;
     }
 
-    public function setCategory(?Category $category): static
+    public function setCategory(?Category $category): self
     {
         $this->category = $category;
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Reservation>
-     */
     public function getReservations(): Collection
     {
         return $this->reservations;
     }
 
-    public function addReservation(Reservation $reservation): static
+    public function addReservation(Reservation $reservation): self
     {
         if (!$this->reservations->contains($reservation)) {
             $this->reservations->add($reservation);
@@ -327,10 +358,9 @@ class Habitat
         return $this;
     }
 
-    public function removeReservation(Reservation $reservation): static
+    public function removeReservation(Reservation $reservation): self
     {
         if ($this->reservations->removeElement($reservation)) {
-            // set the owning side to null (unless already changed)
             if ($reservation->getHabitat() === $this) {
                 $reservation->setHabitat(null);
             }
@@ -339,15 +369,12 @@ class Habitat
         return $this;
     }
 
-    /**
-     * @return Collection<int, Avis>
-     */
     public function getAvis(): Collection
     {
         return $this->avis;
     }
 
-    public function addAvi(Avis $avi): static
+    public function addAvi(Avis $avi): self
     {
         if (!$this->avis->contains($avi)) {
             $this->avis->add($avi);
@@ -357,10 +384,9 @@ class Habitat
         return $this;
     }
 
-    public function removeAvi(Avis $avi): static
+    public function removeAvi(Avis $avi): self
     {
         if ($this->avis->removeElement($avi)) {
-            // set the owning side to null (unless already changed)
             if ($avi->getHabitat() === $this) {
                 $avi->setHabitat(null);
             }
@@ -369,15 +395,12 @@ class Habitat
         return $this;
     }
 
-    /**
-     * @return Collection<int, Promotion>
-     */
     public function getPromotions(): Collection
     {
         return $this->promotions;
     }
 
-    public function addPromotion(Promotion $promotion): static
+    public function addPromotion(Promotion $promotion): self
     {
         if (!$this->promotions->contains($promotion)) {
             $this->promotions->add($promotion);
@@ -387,10 +410,9 @@ class Habitat
         return $this;
     }
 
-    public function removePromotion(Promotion $promotion): static
+    public function removePromotion(Promotion $promotion): self
     {
         if ($this->promotions->removeElement($promotion)) {
-            // set the owning side to null (unless already changed)
             if ($promotion->getHabitat() === $this) {
                 $promotion->setHabitat(null);
             }
@@ -399,15 +421,12 @@ class Habitat
         return $this;
     }
 
-    /**
-     * @return Collection<int, Image>
-     */
     public function getImages(): Collection
     {
         return $this->images;
     }
 
-    public function addImage(Image $image): static
+    public function addImage(Image $image): self
     {
         if (!$this->images->contains($image)) {
             $this->images->add($image);
@@ -417,10 +436,9 @@ class Habitat
         return $this;
     }
 
-    public function removeImage(Image $image): static
+    public function removeImage(Image $image): self
     {
         if ($this->images->removeElement($image)) {
-            // set the owning side to null (unless already changed)
             if ($image->getHabitat() === $this) {
                 $image->setHabitat(null);
             }

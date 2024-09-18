@@ -16,6 +16,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
@@ -23,26 +24,11 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']],
     operations: [
-        new Get(
-            security: "is_granted('ROLE_USER')",
-            securityMessage: 'Seuls les utilisateurs authentifiés peuvent accéder à cette ressource.'
-        ),
-        new GetCollection(
-            security: "is_granted('ROLE_ADMIN')",
-            securityMessage: 'Seuls les administrateurs peuvent voir la liste des utilisateurs.'
-        ),
-        new Post(
-            security: "is_granted('ROLE_ADMIN')",
-            securityMessage: 'Seuls les administrateurs peuvent créer de nouveaux utilisateurs.'
-        ),
-        new Put(
-            security: "is_granted('ROLE_ADMIN') or object == user",
-            securityMessage: 'Vous ne pouvez modifier que votre propre compte, sauf si vous êtes administrateur.'
-        ),
-        new Delete(
-            security: "is_granted('ROLE_ADMIN')",
-            securityMessage: 'Seuls les administrateurs peuvent supprimer des utilisateurs.'
-        )
+        new Get(security: "is_granted('ROLE_ADMIN') or object == user"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('PUBLIC_ACCESS')"),
+        new Put(security: "is_granted('ROLE_ADMIN') or object == user"),
+        new Delete(security: "is_granted('ROLE_ADMIN')")
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -66,21 +52,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column]
     #[Groups(['write'])]
-    #[Assert\NotBlank(message: "Le mot de passe ne peut pas être vide.")]
-    #[Assert\Length(
-        min: 6,
-        max: 4096,
-        minMessage: "Le mot de passe doit comporter au moins {{ limit }} caractères.",
-        maxMessage: "Le mot de passe ne peut pas dépasser {{ limit }} caractères."
-    )]
+    #[Assert\NotBlank(groups: ['create'], message: "Le mot de passe ne peut pas être vide lors de la création.")]
     private ?string $password = null;
 
     #[Groups(['write'])]
-    #[Assert\NotBlank(message: "Le mot de passe de confirmation ne peut pas être vide.")]
-    #[Assert\Expression(
-        "this.getPassword() === this.getReTypePassword()",
-        message: "Les mots de passe ne correspondent pas."
-    )]
+    #[Assert\NotBlank(groups: ['create'], message: "Le mot de passe de confirmation ne peut pas être vide lors de la création.")]
     private ?string $reTypePassword = null;
 
     #[ORM\Column(type: 'boolean')]
@@ -89,33 +65,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255)]
     #[Groups(['read', 'write'])]
-    #[Assert\NotBlank(message: "Le prénom ne peut pas être vide.")]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: "Le prénom ne peut pas dépasser {{ limit }} caractères."
-    )]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['read', 'write'])]
-    #[Assert\NotBlank(message: "Le nom de famille ne peut pas être vide.")]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: "Le nom de famille ne peut pas dépasser {{ limit }} caractères."
-    )]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['read', 'write'])]
-    #[Assert\NotBlank(message: "Le numéro de téléphone ne peut pas être vide.")]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: "Le numéro de téléphone ne peut pas dépasser {{ limit }} caractères."
-    )]
-    #[Assert\Regex(
-        pattern: "/^\+?[0-9]*$/",
-        message: "Le numéro de téléphone ne doit contenir que des chiffres et éventuellement un signe plus au début."
-    )]
     private ?string $phoneNumber = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -124,38 +81,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\OneToMany(targetEntity: Habitat::class, mappedBy: 'owner', cascade: ['persist', 'remove'])]
-    #[Groups(['read'])]
+    /**
+     * @var Collection<int, Habitat>
+     */
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Habitat::class)]
+    #[Groups(['user:read'])]
     private Collection $habitats;
 
-    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
-    #[Groups(['read'])]
-    private Collection $reservations;
-
-    #[ORM\OneToMany(targetEntity: Avis::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
-    #[Groups(['read'])]
+    /**
+     * @var Collection<int, Avis>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Avis::class)]
+    #[Groups(['user:read', 'user:write'])]
     private Collection $avis;
-
-    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender', cascade: ['persist', 'remove'])]
-    #[Groups(['read'])]
-    private Collection $messages;
-
-    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
-    #[Groups(['read'])]
-    private Collection $notifications;
 
     public function __construct()
     {
+        $this->roles = ['ROLE_USER'];
         $this->habitats = new ArrayCollection();
-        $this->reservations = new ArrayCollection();
-        $this->avis = new ArrayCollection();
-        $this->messages = new ArrayCollection();
-        $this->notifications = new ArrayCollection();
+        $this->avis = new ArrayCollection(); // Initialize the collection of avis
     }
+
+    // Getters and Setters for all fields
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -166,31 +123,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self
     {
         $this->email = $email;
-
         return $this;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
     }
 
     public function getRoles(): array
     {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
+        return array_unique($this->roles);
     }
 
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -198,7 +145,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
-
         return $this;
     }
 
@@ -212,11 +158,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->reTypePassword = $reTypePassword;
     }
 
-    public function eraseCredentials(): void
-    {
-        // Clear temporary, sensitive data
-    }
-
     public function isActive(): ?bool
     {
         return $this->isActive;
@@ -225,7 +166,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setActive(bool $isActive): self
     {
         $this->isActive = $isActive;
-
         return $this;
     }
 
@@ -237,7 +177,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstName(string $firstName): self
     {
         $this->firstName = $firstName;
-
         return $this;
     }
 
@@ -249,7 +188,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
-
         return $this;
     }
 
@@ -261,7 +199,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhoneNumber(string $phoneNumber): self
     {
         $this->phoneNumber = $phoneNumber;
-
         return $this;
     }
 
@@ -273,7 +210,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -285,10 +221,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
+    /**
+     * @return Collection<int, Habitat>
+     */
     public function getHabitats(): Collection
     {
         return $this->habitats;
@@ -315,104 +253,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getReservations(): Collection
-    {
-        return $this->reservations;
-    }
-
-    public function addReservation(Reservation $reservation): self
-    {
-        if (!$this->reservations->contains($reservation)) {
-            $this->reservations->add($reservation);
-            $reservation->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReservation(Reservation $reservation): self
-    {
-        if ($this->reservations->removeElement($reservation)) {
-            if ($reservation->getUser() === $this) {
-                $reservation->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
+    /**
+     * @return Collection<int, Avis>
+     */
     public function getAvis(): Collection
     {
         return $this->avis;
     }
 
-    public function addAvi(Avis $avi): self
+    public function addAvis(Avis $avis): self
     {
-        if (!$this->avis->contains($avi)) {
-            $this->avis->add($avi);
-            $avi->setUser($this);
+        if (!$this->avis->contains($avis)) {
+            $this->avis->add($avis);
+            $avis->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeAvi(Avis $avi): self
+    public function removeAvis(Avis $avis): self
     {
-        if ($this->avis->removeElement($avi)) {
-            if ($avi->getUser() === $this) {
-                $avi->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getMessages(): Collection
-    {
-        return $this->messages;
-    }
-
-    public function addMessage(Message $message): self
-    {
-        if (!$this->messages->contains($message)) {
-            $this->messages->add($message);
-            $message->setSender($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMessage(Message $message): self
-    {
-        if ($this->messages->removeElement($message)) {
-            if ($message->getSender() === $this) {
-                $message->setSender(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getNotifications(): Collection
-    {
-        return $this->notifications;
-    }
-
-    public function addNotification(Notification $notification): self
-    {
-        if (!$this->notifications->contains($notification)) {
-            $this->notifications->add($notification);
-            $notification->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeNotification(Notification $notification): self
-    {
-        if ($this->notifications->removeElement($notification)) {
-            if ($notification->getUser() === $this) {
-                $notification->setUser(null);
+        if ($this->avis->removeElement($avis)) {
+            if ($avis->getUser() === $this) {
+                $avis->setUser(null);
             }
         }
 
@@ -432,5 +295,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Clear any temporary sensitive data
+    }
+
+    public function validate(ExecutionContextInterface $context, $payload): void
+    {
+        if ($this->password !== $this->reTypePassword) {
+            $context->buildViolation('Les mots de passe ne correspondent pas.')
+                ->atPath('reTypePassword')
+                ->addViolation();
+        }
     }
 }
