@@ -60,15 +60,29 @@ security:
     # Only admins can delete users
     - { path: ^/api/users/\d+, roles: ROLE_ADMIN, methods: [DELETE] }
 
-    # Allow everyone to get categories (GET collection or single category), but restrict other category operations to admins
-    - {
-        path: ^/api/categories,
-        roles: ROLE_ADMIN,
-        methods: [POST, PUT, DELETE],
-      }
+    # Restrict creation, update, and deletion of statuses to admins only
+    - { path: ^/api/statuses, roles: ROLE_ADMIN, methods: [POST, PUT, DELETE] }
+
+    # Allow everyone to get statuses (GET collection or single status)
+    - { path: ^/api/statuses, roles: PUBLIC_ACCESS, methods: [GET] }
 
     # Require authentication for all other API requests
     - { path: ^/api, roles: ROLE_USER }
+
+    # Stripe Checkout route is publicly accessible
+    - { path: ^/api/stripe/checkout, roles: PUBLIC_ACCESS }
+
+
+        # Allow public access to the login path
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+
+    # Allow authenticated users to access their own reservations
+    - { path: ^/api/reservations, roles: ROLE_USER, methods: [GET] }
+
+    # Only admins can access the collection of all reservations
+    - { path: ^/api/reservations, roles: ROLE_ADMIN, methods: [GET] }
+    
+ 
 
 when@test:
   security:

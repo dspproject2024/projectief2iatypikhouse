@@ -81,16 +81,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    /**
-     * @var Collection<int, Habitat>
-     */
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Habitat::class)]
     #[Groups(['user:read'])]
     private Collection $habitats;
 
-    /**
-     * @var Collection<int, Avis>
-     */
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Reservation::class)]
+    #[Groups(['user:read'])]
+    private Collection $reservations;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Avis::class)]
     #[Groups(['user:read', 'user:write'])]
     private Collection $avis;
@@ -99,10 +97,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->roles = ['ROLE_USER'];
         $this->habitats = new ArrayCollection();
-        $this->avis = new ArrayCollection(); // Initialize the collection of avis
+        $this->reservations = new ArrayCollection();
+        $this->avis = new ArrayCollection();
     }
 
-    // Getters and Setters for all fields
+    // Getters and Setters
 
     public function getId(): ?int
     {
@@ -224,6 +223,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Clear any temporary sensitive data if needed
+    }
+
     /**
      * @return Collection<int, Habitat>
      */
@@ -247,6 +256,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->habitats->removeElement($habitat)) {
             if ($habitat->getOwner() === $this) {
                 $habitat->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): self
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): self
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            if ($reservation->getOwner() === $this) {
+                $reservation->setOwner(null);
             }
         }
 
@@ -295,16 +333,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
-
-    public function eraseCredentials(): void
-    {
-        // Clear any temporary sensitive data
     }
 
     public function validate(ExecutionContextInterface $context, $payload): void
