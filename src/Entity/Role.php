@@ -19,8 +19,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: ['groups' => ['role:write']],
     operations: [
         new Get(
-            security: "is_granted('ROLE_ADMIN')",
-            securityMessage: "Seuls les administrateurs peuvent accéder à cette ressource."
+            // security: "is_granted('ROLE_ADMIN')",
+            // securityMessage: "Seuls les administrateurs peuvent accéder à cette ressource."
         ),
         new GetCollection(
             security: "is_granted('ROLE_ADMIN')",
