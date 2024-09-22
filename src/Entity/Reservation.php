@@ -56,7 +56,7 @@ class Reservation
     #[Assert\NotNull(message: "La date de début ne peut pas être nulle.")]
     #[Assert\Type("\DateTimeInterface")]
     #[Assert\Expression(
-        "this.getStartDate() < this.getEndDate()",
+        "this.getStartDate() < this.getEndDate()", 
         message: "La date de début doit être antérieure à la date de fin."
     )]
     #[Groups(['reservation:read', 'reservation:write'])]
@@ -73,7 +73,7 @@ class Reservation
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column]
-    ##[Assert\NotNull(message: "Le prix total ne peut pas être nul.")]
+    #[Assert\NotNull(message: "Le prix total ne peut pas être nul.")]
     #[Assert\Positive(message: "Le prix total doit être un nombre positif.")]
     #[Groups(['reservation:read', 'reservation:write'])]
     private ?float $totalPrice = null;
@@ -89,7 +89,7 @@ class Reservation
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
-    ##[Assert\NotNull(message: "L'utilisateur associé ne peut pas être nul.")]
+    #[Assert\NotNull(message: "L'utilisateur associé ne peut pas être nul.")]
     #[Groups(['reservation:read', 'reservation:write'])]
     private ?User $user = null;
 
@@ -99,7 +99,7 @@ class Reservation
     private ?Habitat $habitat = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
-    ##[Assert\NotNull(message: "Le statut de la réservation ne peut pas être nul.")]
+    #[Assert\NotNull(message: "Le statut de la réservation ne peut pas être nul.")]
     #[Groups(['reservation:read', 'reservation:write'])]
     private ?Status $status = null;
 
@@ -115,6 +115,21 @@ class Reservation
         $this->payments = new ArrayCollection();
     }
 
+    // Lifecycle Callbacks
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable(); // Set updatedAt as well on creation
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable(); // Update the updatedAt field
+    }
+
+    // Getters and Setters
     public function getId(): ?int
     {
         return $this->id;
@@ -128,7 +143,6 @@ class Reservation
     public function setStartDate(\DateTimeInterface $startDate): static
     {
         $this->startDate = $startDate;
-
         return $this;
     }
 
@@ -140,7 +154,6 @@ class Reservation
     public function setEndDate(\DateTimeInterface $endDate): static
     {
         $this->endDate = $endDate;
-
         return $this;
     }
 
@@ -152,7 +165,6 @@ class Reservation
     public function setTotalPrice(float $totalPrice): static
     {
         $this->totalPrice = $totalPrice;
-
         return $this;
     }
 
@@ -164,7 +176,6 @@ class Reservation
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -176,7 +187,6 @@ class Reservation
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
@@ -188,7 +198,6 @@ class Reservation
     public function setUser(?User $user): static
     {
         $this->user = $user;
-
         return $this;
     }
 
@@ -200,7 +209,6 @@ class Reservation
     public function setHabitat(?Habitat $habitat): static
     {
         $this->habitat = $habitat;
-
         return $this;
     }
 
@@ -212,7 +220,6 @@ class Reservation
     public function setStatus(?Status $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
@@ -245,19 +252,4 @@ class Reservation
 
         return $this;
     }
-
-//    #[ORM\PrePersist]
-//    public function setCreatedAtValue(): void
-//    {
-//        if ($this->createdAt === null) {
-//            $this->createdAt = new \DateTimeImmutable();
-//        }
-//    }
-//
-//    #[ORM\PrePersist]
-//    #[ORM\PreUpdate]
-//    public function setUpdatedAtValue(): void
-//    {
-//        $this->updatedAt = new \DateTimeImmutable();
-//    }
 }
