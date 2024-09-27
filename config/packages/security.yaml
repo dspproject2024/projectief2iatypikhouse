@@ -72,12 +72,15 @@ security:
     # Stripe Checkout route is publicly accessible
     - { path: ^/api/stripe/checkout, roles: PUBLIC_ACCESS }
 
-    # Allow public access to the login path
+    # Fixed path for newsletters with correct roles
     - {
-        path: ^/api/login,
-        roles: ["PUBLIC_ACCESS", "ROLE_USER"],
-        methods: [GET, POST],
+        path: ^/api/newsletters,
+        roles: PUBLIC_ACCESS,
+        methods: ["GET", "POST"],
       }
+
+    # Allow public access to the login path
+    - { path: ^/api/login, roles: ["PUBLIC_ACCESS"], methods: [GET, POST] }
 
     # Fixed path for newsletters with correct roles
     - { path: ^/api/newsletters, roles: ROLE_ADMIN, methods: [PUT, DELETE] }

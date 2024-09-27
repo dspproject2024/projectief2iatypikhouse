@@ -25,13 +25,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(
         ),
         new Put(
-            security: "is_granted('ROLE_ADMIN')",
-            securityMessage: 'Seuls les administrateurs peuvent modifier cet habitat.',
-            denormalizationContext: ['groups' => ['habitat:write']]
+         
+         
         ),
         new Delete(
-            security: "is_granted('ROLE_ADMIN')",
-            securityMessage: 'Seuls les administrateurs ou le propriétaire peuvent supprimer cet habitat.'
+          
         )
     ]
 )]
