@@ -126,7 +126,7 @@ class Habitat
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\Url(message: "L'URL de l'image doit être valide.")]
     #[Groups(['habitat:read', 'habitat:write'])]
-    private ?string $url = null;
+    private ?string $url = null;    
 
     #[ORM\Column]
     #[Assert\Type("\DateTimeImmutable")]

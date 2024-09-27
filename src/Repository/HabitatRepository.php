@@ -40,4 +40,14 @@ class HabitatRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+public function findLatestHabitats(int $limit = 6)
+{
+    return $this->createQueryBuilder('h')
+        ->orderBy('h.createdAt', 'DESC')
+        ->setMaxResults($limit)
+        ->getQuery()
+        ->getResult();
+}
+
 }

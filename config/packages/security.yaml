@@ -67,7 +67,7 @@ security:
     - { path: ^/api/statuses, roles: PUBLIC_ACCESS, methods: [GET] }
 
     # Require authentication for all other API requests
-    - { path: ^/api, roles: ROLE_USER }
+    - { path: ^/api, roles: PUBLIC_ACCESS }
 
     # Stripe Checkout route is publicly accessible
     - { path: ^/api/stripe/checkout, roles: PUBLIC_ACCESS }
