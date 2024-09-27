@@ -20,12 +20,6 @@ services:
       - "../src/Entity/"
       - "../src/Kernel.php"
 
-  # Explicitly configure the PayPalPaymentService with environment variables
-  App\Service\PayPalPaymentService:
-    arguments:
-      $clientId: "%env(PAYPAL_CLIENT_ID)%"
-      $secret: "%env(PAYPAL_SECRET)%"
-
   # Explicitly configure the StripePaymentService with environment variables
 
   App\Service\StripePaymentService:
@@ -34,11 +28,3 @@ services:
 
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
-
-  App\Controller\PayPalController:
-    public: true # Make sure the controller is public
-    tags: ["controller.service_arguments"] # Ensure the controller can receive arguments
-
-  App\Controller\:
-        resource: '../src/Controller'
-        tags: ['controller.service_arguments']  # Permet à Symfony d'injecter les dépendances dans les contrôleurs

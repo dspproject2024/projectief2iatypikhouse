@@ -29,6 +29,8 @@ class HabitatController
         $habitat->setMaxGuests($data['maxGuests']);
         $habitat->setAmenities($data['amenities']);
         $habitat->setAvailability($data['availability']);
+        $habitat->setStartDate($data['startDate']);
+        $habitat->setEndDate($data['endDate']);
 
         // Stocker les URLs des images envoyées via le formulaire JSON
         $habitat->setUrl($data['urls']);  // URLs des images doivent être envoyées ici

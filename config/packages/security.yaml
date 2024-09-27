@@ -72,17 +72,27 @@ security:
     # Stripe Checkout route is publicly accessible
     - { path: ^/api/stripe/checkout, roles: PUBLIC_ACCESS }
 
+    # Allow public access to the login path
+    - {
+        path: ^/api/login,
+        roles: ["PUBLIC_ACCESS", "ROLE_USER"],
+        methods: [GET, POST],
+      }
 
-        # Allow public access to the login path
-    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+    # Fixed path for newsletters with correct roles
+    - { path: ^/api/newsletters, roles: ROLE_ADMIN, methods: [PUT, DELETE] }
+
+    # Require authentication for all other API requests
+    - { path: ^/api, roles: ROLE_USER }
 
     # Allow authenticated users to access their own reservations
     - { path: ^/api/reservations, roles: ROLE_USER, methods: [GET] }
 
+    # Allow public access to images
+    - { path: ^/api/images, roles: PUBLIC_ACCESS, methods: [GET] }
+
     # Only admins can access the collection of all reservations
     - { path: ^/api/reservations, roles: ROLE_ADMIN, methods: [GET] }
-    
- 
 
 when@test:
   security:

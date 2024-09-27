@@ -163,6 +163,14 @@ class Habitat
     #[Groups(['habitat:read'])]
     private Collection $images;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['habitat:read', 'habitat:write'])]
+    private ?\DateTimeInterface $startDate = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['habitat:read', 'habitat:write'])]
+    private ?\DateTimeInterface $endDate = null;
+
     public function __construct()
     {
         $this->reservations = new ArrayCollection();
@@ -460,5 +468,29 @@ class Habitat
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getStartDate(): ?\DateTimeInterface
+    {
+        return $this->startDate;
+    }
+
+    public function setStartDate(?\DateTimeInterface $startDate): static
+    {
+        $this->startDate = $startDate;
+
+        return $this;
+    }
+
+    public function getEndDate(): ?\DateTimeInterface
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?\DateTimeInterface $endDate): static
+    {
+        $this->endDate = $endDate;
+
+        return $this;
     }
 }
