@@ -20,8 +20,10 @@ services:
       - "../src/Entity/"
       - "../src/Kernel.php"
 
-  # Explicitly configure the StripePaymentService with environment variables
+   # Enregistrement explicite de HabitatController
 
+  # Explicitly configure the StripePaymentService with environment variables
+  
   App\Service\StripePaymentService:
     arguments:
       $stripeSecretKey: "%env(STRIPE_SECRET_KEY)%"

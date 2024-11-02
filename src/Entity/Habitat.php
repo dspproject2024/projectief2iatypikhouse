@@ -15,11 +15,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Controller\HabitatController;
 
 #[ORM\Entity(repositoryClass: HabitatRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['habitat:read']],
     denormalizationContext: ['groups' => ['habitat:write']],
+    paginationEnabled: false,
     operations: [
         new Get(),
         new GetCollection(),
@@ -37,7 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_ADMIN') or object.getOwner() == user",
             securityMessage: 'Seuls les administrateurs ou le propriétaire peuvent supprimer cet habitat.'
         )
-    ]
+        ]
 )]
 #[ORM\HasLifecycleCallbacks]
 class Habitat
