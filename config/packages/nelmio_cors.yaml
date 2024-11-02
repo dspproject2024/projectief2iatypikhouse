@@ -1,13 +1,13 @@
 nelmio_cors:
     defaults:
         allow_credentials: true
-        allow_origin: ['https://localhost:4200']  # Autoriser les requêtes venant de ton frontend
+        allow_origin: ['https://dsp-devo22b-jg-sr-ml-my.com']  # Autoriser les requêtes venant de ton frontend
         allow_headers: ['Content-Type', 'Authorization']
         allow_methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS']
         expose_headers: ['Link']
         max_age: 3600
     paths:
         '^/': # Appliquer CORS à toutes les routes
-            allow_origin: ['http://localhost:4200']
+            allow_origin: ['https://dsp-devo22b-jg-sr-ml-my.com']
             allow_headers: ['Content-Type', 'Authorization']
             allow_methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS']
